@@ -1,21 +1,21 @@
 using System;
 
 namespace GridSystem {
-    public abstract class BaseGridNode : IGridNode<BaseGridNode> {
+    public abstract class BaseGridNode<TGridNode> : IGridNode<TGridNode> where TGridNode : IGridNode<TGridNode> {
         public int X { get; }
         public int Y { get; }
-        public Grid<BaseGridNode> Grid { get; }
+        public Grid<TGridNode> Grid { get; }
 
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
 
-        public BaseGridNode(Grid<BaseGridNode> grid, int x, int y) {
+        public BaseGridNode(Grid<TGridNode> grid, int x, int y) {
             Grid = grid;
             X = x;
             Y = y;
         }
 
-        void IGridNode<BaseGridNode>.TriggerGridNodeRemoved() {
+        void IGridNode<TGridNode>.TriggerGridNodeRemoved() {
             OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEventArgs(X, Y));
         }
 
@@ -24,13 +24,13 @@ namespace GridSystem {
         }
         
         public override bool Equals(object obj) {
-            if (obj is BaseGridNode other) {
+            if (obj is TGridNode other) {
                 return Equals(other);
             }
             return false;
         }
 
-        protected bool Equals(BaseGridNode other) {
+        protected bool Equals(TGridNode other) {
             return X == other.X && Y == other.Y && Grid == other.Grid;
         }
 
