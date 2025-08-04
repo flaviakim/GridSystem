@@ -7,5 +7,6 @@
     "author": {
         "name": "Flavia Brogle"
     },
-    "keywords": ["2D", "Grid", "Tiles"]
+    "keywords": ["2D", "Grid", "Tiles"],
+    "documentationUrl": "https://github.com/flaviakim/GridSystem/blob/main/README.md"
 }
