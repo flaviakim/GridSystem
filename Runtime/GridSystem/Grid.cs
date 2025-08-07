@@ -17,20 +17,32 @@ namespace GridSystem {
         /// It is the position where the grid's (0, 0) cell is located and at (0, 0) within that cell.
         /// The origin position is used to calculate the world position of each cell based on its coordinates.
         /// <para />
-        /// When the pivot of a cell is (0, 0), the assumed default origin position is (0, 0, 0).
-        /// When the pivot of a cell is (0.5, 0.5), the assumed default origin position is (-CellSize/2f, -CellSize/2f, 0).
+        /// When the <see cref="Pivot"/> of a cell is (0, 0), the assumed default origin position is (0, 0, 0).
+        /// When the <see cref="Pivot"/> of a cell is (0.5, 0.5), the assumed default origin position is (-CellSize/2f, -CellSize/2f, 0).
         /// </summary>
         public Vector3 OriginPosition { get; protected set; }
+        
+        /// <summary>
+        /// The pivot of the grid cells, i.e., the point within each cell that is considered the "origin" of that cell.
+        ///
+        /// The pivot is used to calculate the world position of each cell based on its coordinates.
+        /// (0, 0) means the bottom-left corner of the cell,
+        /// (0.5, 0.5) means the center of the cell,
+        /// (1, 1) means the top-right corner of the cell.
+        /// </summary>
+        public Vector2 Pivot { get; set; }
     
         private readonly TGridNode[,] _gridArray;
 
-        public Grid(int width, int height, Func<Grid<TGridNode>, int, int, TGridNode> createGridNode) : this(width, height, 1f, Vector3.zero, createGridNode) { }
+        public Grid(int width, int height, Func<Grid<TGridNode>, int, int, TGridNode> createGridNode) : this(width, height, 1f, Vector3.zero, Vector2.zero, createGridNode) { }
 
-        public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridNode>, int, int, TGridNode> createGridNode) {
+        public Grid(int width, int height, float cellSize, Vector3 originPosition, Vector2 pivot,
+            Func<Grid<TGridNode>, int, int, TGridNode> createGridNode) {
             Width = width;
             Height = height;
             CellSize = cellSize;
             OriginPosition = originPosition;
+            Pivot = pivot;
             _gridArray = new TGridNode[width, height];
 
             for (int x = 0; x < width; x++) {
@@ -46,7 +58,10 @@ namespace GridSystem {
     
         public Vector3 GetWorldPosition(int x, int y) {
             // Debug.Asset(x >= 0 && x < Width && y >= 0 && y < Height); // It is quite ok to get outside the grid, don't assert but maybe inform in a log
-            var worldPosition = OriginPosition + new Vector3(x * CellSize, 0, y * CellSize);
+            var worldPosition = OriginPosition + new Vector3((x + Pivot.x) * CellSize, (y + Pivot.y) * CellSize, 0);
+            // Adjusted for pivot as if:
+            // worldPosition.x += Pivot.x * CellSize;
+            // worldPosition.y += Pivot.y * CellSize;
             if (x < 0 || x >= Width || y < 0 || y >= Height) {
                 Debug.Log($"GetWorldPosition: ({x}, {y}) called out of bounds. Still returning world position {worldPosition}.");
             }
