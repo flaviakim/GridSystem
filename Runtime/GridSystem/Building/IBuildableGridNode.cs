@@ -3,6 +3,6 @@ namespace GridSystem.Building {
         bool IsBuildable { get; }
         IStructure Structure { get; }
         bool PlaceStructure(IStructure structure, int x, int y);
-        void RemoveStructure();
+        bool RemoveStructure();
     }
 }
