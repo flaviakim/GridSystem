@@ -9,16 +9,38 @@ namespace GridSystem.Building {
         public Grid<TGridNode> Grid { get; }
         
         public bool TryPlaceStructure([NotNull] IStructure structure, int x, int y) {
-            var node = Grid.GetGridNode(x, y);
-            if (node.IsBuildable && structure.AfterPlacing(x, y)) {
-                return node.PlaceStructure(structure, x, y);
+            var success = true;
+            var gridNodes = Grid.GetGridNodesInArea(x, y, structure.Width, structure.Height);
+            var mainNode = Grid.GetGridNode(x, y);
+            foreach (var node in gridNodes) {
+                if (!node.IsBuildable || !structure.CanBePlacedOn(node)) return false;
+                var nodePlacementSuccess = node.TryPlaceStructure(structure);
+                if (!nodePlacementSuccess) {
+                    success = false;
+                }
             }
-            return false;
+            
+            if (!success) {
+                // If any node failed to place the structure, we need to remove the structure from all nodes that were successfully placed.
+                foreach (var node in gridNodes) {
+                    if (node.Structure == structure) {
+                        node.RemoveStructure(shouldTriggerGridNodeChanged: false);
+                    }
+                }
+                return false;
+            }
+
+            structure.AfterPlacing(mainNode, Grid);
+            foreach (var node in gridNodes) {
+                node.AfterPlacingStructure(mainNode, Grid);
+            }
+
+            return true;
         }
 
         public bool RemoveStructure(int x, int y) {
             var node = Grid.GetGridNode(x, y);
-            return node.RemoveStructure();
+            return node.RemoveStructure(shouldTriggerGridNodeChanged: true);
         }
     }
 }

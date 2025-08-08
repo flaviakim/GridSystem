@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GridSystem {
@@ -123,5 +124,17 @@ namespace GridSystem {
             OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEventArgs(x, y));
         }
 
+        public List<TGridNode> GetGridNodesInArea(int x, int y, int width, int height) {
+            var nodes = new List<TGridNode>();
+            for (int iY = 0; iY < height; iY++) {
+                for (int iX = 0; iX < width; iX++) {
+                    var node = GetGridNode(x + iX, y + iY);
+                    if (node != null) {
+                        nodes.Add(node);
+                    }
+                }
+            }
+            return nodes;
+        }
     }
 }
