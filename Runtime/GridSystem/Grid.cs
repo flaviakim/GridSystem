@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace GridSystem {
-    public class Grid<TGridNode> where TGridNode : IGridNode<TGridNode> {
+    public class Grid<TGridNode> : IDisposable where TGridNode : IGridNode<TGridNode> {
     
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeAdded;
@@ -49,14 +49,25 @@ namespace GridSystem {
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {
                     _gridArray[x, y] = createGridNode(this, x, y);
-                    _gridArray[x, y].OnGridNodeChanged += (_, args) => {
-                        OnGridNodeChanged?.Invoke(this, new GridNodeChangedEventArgs(args.X, args.Y));
-                    };
+                    _gridArray[x, y].OnGridNodeChanged += OnGridNodeChanged;
                     TriggerGridNodeAdded(x, y);
                 }
             }
         }
-        
+
+        public void Dispose() {
+            for (int x = 0; x < Width; x++) {
+                for (int y = 0; y < Height; y++) {
+                    if (_gridArray[x, y] != null) {
+                        _gridArray[x, y].OnGridNodeChanged -= OnGridNodeChanged;
+                        _gridArray[x, y].TriggerGridNodeRemoved();
+                        TriggerGridNodeRemoved(x, y);
+                        _gridArray[x, y] = default;
+                    }
+                }
+            }
+        }
+
         public Vector3 GetWorldPosition(int x, int y) {
             // Debug.Asset(x >= 0 && x < Width && y >= 0 && y < Height); // It is quite ok to get outside the grid, don't assert but maybe inform in a log
             var worldPosition = OriginPosition + new Vector3((x + Pivot.x) * CellSize, (y + Pivot.y) * CellSize, 0);
