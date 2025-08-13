@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace GridSystem {
-    public class Grid<TGridNode> : IDisposable where TGridNode : IGridNode<TGridNode> {
+    public class Grid<TGridNode> : IGrid<TGridNode> where TGridNode : IGridNode<TGridNode> {
     
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeAdded;
