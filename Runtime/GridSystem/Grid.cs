@@ -56,7 +56,7 @@ namespace GridSystem {
                 }
             }
         }
-    
+        
         public Vector3 GetWorldPosition(int x, int y) {
             // Debug.Asset(x >= 0 && x < Width && y >= 0 && y < Height); // It is quite ok to get outside the grid, don't assert but maybe inform in a log
             var worldPosition = OriginPosition + new Vector3((x + Pivot.x) * CellSize, (y + Pivot.y) * CellSize, 0);
@@ -67,6 +67,26 @@ namespace GridSystem {
                 Debug.Log($"GetWorldPosition: ({x}, {y}) called out of bounds. Still returning world position {worldPosition}.");
             }
             return worldPosition;
+        }
+        
+        /// <summary>
+        /// Gets the world position of a cell in the grid based on its position in the grid. The whole number is the cell,
+        /// the decimal part is the relative position within the cell, factoring in cell size and pivot.
+        /// 
+        /// The position in the grid is given as a Vector2, where (0.0, 0.0) is the pivot position of the cell at (0, 0),
+        /// (1.0, 1.0) is the pivot position of the cell at (1, 1), and (2.5, 4.5) is half a cell size offset to the right and up from the pivot of the cell at (2, 4).
+        /// </summary>
+        /// <param name="positionInGrid"> The position in the grid to get the world position for.</param>
+        /// <returns> The world position within the cell at the given position in the grid.</returns>
+        public Vector3 GetWorldPosition(Vector2 positionInGrid) {
+            if (positionInGrid.x < 0 || positionInGrid.x >= Width || positionInGrid.y < 0 || positionInGrid.y >= Height) {
+                Debug.LogWarning($"GetWorldPosition: ({positionInGrid.x}, {positionInGrid.y}) is out of bounds.");
+            }
+
+            return OriginPosition + new Vector3(
+                (positionInGrid.x + Pivot.x) * CellSize,
+                (positionInGrid.y + Pivot.y) * CellSize,
+                0);
         }
 
         public TGridNode GetGridNodeFromWorldPos(Vector3 worldPosition) {
