@@ -1,7 +1,7 @@
 using System;
 
 namespace GridSystem.Pathfinding {
-    public class PathfindingSystem<TGridNode> where TGridNode : IWalkableGridNode<TGridNode> {
+    public class PathfindingSystem<TGridNode, TGridUnit> where TGridNode : IWalkableGridNode<TGridNode, TGridUnit> {
         private readonly Grid<TGridNode> _grid;
 
         public PathfindingSystem(Grid<TGridNode> grid) {

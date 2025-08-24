@@ -1,6 +1,12 @@
 namespace GridSystem.Pathfinding {
-    public interface IWalkableGridNode<TGridNode> : IGridNode<TGridNode> where TGridNode : IWalkableGridNode<TGridNode> {
-        bool IsWalkable { get; } // TODO change to isWalkable(Unit) method for specific units
-        float MovementCost { get; } // TODO change to getMovementCost(Unit) getting method for specific units
+    public interface IWalkableGridNode<TGridNode, TGridUnit> : IGridNode<TGridNode> where TGridNode : IWalkableGridNode<TGridNode, TGridUnit> {
+        TGridUnit GridUnit { get; }
+        bool IsWalkable(TGridUnit gridUnit);
+        float GetMovementCost(TGridUnit gridUnit);
+        bool TrySetGridUnit(TGridUnit gridUnit);
+    }
+
+    public interface IGridUnit {
+        
     }
 }
