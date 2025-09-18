@@ -1,6 +1,6 @@
 {
     "name": "FlaviaKim.GridSystem",
-    "references": [],
+    "references": ["FlaviaKim.Extensions"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

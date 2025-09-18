@@ -1,12 +1,19 @@
 {
-    "name": "ch.flaviakim.gridsystem",
-    "version": "0.1.0",
-    "unity": "2022.3",
-    "description": "A simple, reusable grid system for Unity.",
-    "displayName": "GridSystem",
-    "author": {
-        "name": "Flavia Brogle"
-    },
-    "keywords": ["2D", "Grid", "Tiles"],
-    "documentationUrl": "https://github.com/flaviakim/GridSystem/blob/main/README.md"
+  "name": "ch.flaviakim.gridsystem",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "A simple, reusable grid system for Unity.",
+  "displayName": "GridSystem",
+  "author": {
+    "name": "Flavia Brogle"
+  },
+  "dependencies": {
+    "ch.flaviakim.extensions": "0.1.1"
+  },
+  "keywords": [
+    "2D",
+    "Grid",
+    "Tiles"
+  ],
+  "documentationUrl": "https://github.com/flaviakim/GridSystem/blob/main/README.md"
 }
