@@ -111,7 +111,7 @@ namespace GridSystem {
 
         private bool GetXYFromWorldPosition(Vector3 worldPosition, out int x, out int y) {
             x = Mathf.FloorToInt((worldPosition.x - OriginPosition.x) / CellSize);
-            y = Mathf.FloorToInt((worldPosition.z - OriginPosition.z) / CellSize);
+            y = Mathf.FloorToInt((worldPosition.y - OriginPosition.y) / CellSize);
         
             if (x < 0 || x >= Width || y < 0 || y >= Height) {
                 Debug.LogWarning($"GetXYFromWorldPosition: ({worldPosition.x}, {worldPosition.y}, {worldPosition.z}) is out of bounds. Returning ({x}, {y}).");
