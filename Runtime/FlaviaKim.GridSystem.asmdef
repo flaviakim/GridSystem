@@ -1,6 +1,8 @@
 {
     "name": "FlaviaKim.GridSystem",
-    "references": ["FlaviaKim.Extensions"],
+    "references": [
+      "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
