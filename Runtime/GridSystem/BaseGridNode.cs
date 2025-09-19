@@ -1,9 +1,11 @@
 using System;
+using UnityEngine;
 
 namespace GridSystem {
     public abstract class BaseGridNode<TGridNode> : IGridNode<TGridNode> where TGridNode : IGridNode<TGridNode> {
-        public int X { get; }
-        public int Y { get; }
+        public int X => GridPosition.x;
+        public int Y => GridPosition.y;
+        public Vector2Int GridPosition { get; }
         public Grid<TGridNode> Grid { get; }
 
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
@@ -11,8 +13,7 @@ namespace GridSystem {
 
         public BaseGridNode(Grid<TGridNode> grid, int x, int y) {
             Grid = grid;
-            X = x;
-            Y = y;
+            GridPosition = new Vector2Int(x, y);
         }
 
         void IGridNode<TGridNode>.TriggerGridNodeRemoved() {
