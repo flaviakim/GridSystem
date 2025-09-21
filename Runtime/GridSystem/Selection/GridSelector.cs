@@ -42,10 +42,8 @@ namespace GridSystem.Selection {
             DefaultTileSelectionIndicatorPrefab = tileSelectionIndicatorPrefab;
         }
 
-        public void StartSelectionDrag(Vector3 startPositionWorld, SelectionShape? selectionShape = null,
-            GameObject tileSelectionIndicator = null) {
-            StartSelectionDrag(_grid.GetGridNodeFromWorldPos(startPositionWorld).GridPosition, selectionShape,
-                tileSelectionIndicator);
+        public void StartSelectionDrag(Vector3 startPositionWorld, SelectionShape? selectionShape = null, GameObject tileSelectionIndicator = null) {
+            StartSelectionDrag(_grid.GetGridPositionFromWorldPosition(startPositionWorld), selectionShape, tileSelectionIndicator);
         }
 
         public void StartSelectionDrag(Vector2Int startPositionGrid, SelectionShape? selectionShape = null,
@@ -69,7 +67,7 @@ namespace GridSystem.Selection {
         }
 
         public IReadOnlyList<Vector2Int> UpdateSelectionDrag(Vector3 updatedPositionWorld) {
-            Vector2Int newPosition = _grid.GetGridNodeFromWorldPos(updatedPositionWorld).GridPosition;
+            Vector2Int newPosition = _grid.GetGridPositionFromWorldPosition(updatedPositionWorld);
             return UpdateSelectionDrag(newPosition);
         }
 
@@ -135,6 +133,7 @@ namespace GridSystem.Selection {
         }
 
         private void UpdateDragArea(Vector2Int newPositionGrid, Vector2Int previousPositionGrid) {
+            // TODO what to do with grid positions outside the grid?
             if (_currentSelectionShape == SelectionShape.Single ||
                 newPositionGrid == _currentDragStartPosition || !IsDragging) {
                 // Only one Tile needed
