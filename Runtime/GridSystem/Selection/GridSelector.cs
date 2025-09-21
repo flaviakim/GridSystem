@@ -54,7 +54,8 @@ namespace GridSystem.Selection {
             }
 
             if (IsDragging) {
-                // TODO either stop previous drag and start new one or cancel the new drag.
+                Debug.LogWarning($"{nameof(GridSelector<TGridNode>)}: Starting a new selection drag, while there already was a drag. Canceling existing drag.");
+                CancelDrag();
             }
 
             Debug.Assert(_currentTileSelectionIndicatorPrefab == null);
