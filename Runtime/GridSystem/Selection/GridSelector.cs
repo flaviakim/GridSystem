@@ -1,19 +1,80 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace GridSystem.Selection {
-    public class GridSelector<TGridNode> where TGridNode : IGridNode<TGridNode> {
-        private readonly Grid<TGridNode> _grid;
+    public interface IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
+        void UpdatePreviews(IReadOnlyList<Vector2Int> currentDragArea);
+        void RemoveDragPreviews();
+    }
 
-        private GameObject _defaultTileSelectionIndicatorPrefab;
-        public GameObject DefaultTileSelectionIndicatorPrefab {
-            get { return _defaultTileSelectionIndicatorPrefab ??= CreateTileSelectionIndicatorPrefab(); }
-            set => _defaultTileSelectionIndicatorPrefab = value;
-        }
+    public class SimpleGridSelectorDisplay<TGridNode> : IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
+        private readonly List<GameObject> _currentDragPreviewIndicators = new();
+        private readonly List<GameObject> _currentSelectionIndicators = new();
+        private readonly Grid<TGridNode> _grid;
         
+        private GameObject _tileSelectionIndicatorPrefab;
+
+        public GameObject TileSelectionIndicatorPrefab {
+            get { return _tileSelectionIndicatorPrefab ??= CreateTileSelectionIndicatorPrefab(); }
+            set => _tileSelectionIndicatorPrefab = value;
+        }
+
         public Transform TileSelectionIndicatorParent { get; set; }
 
+        public SimpleGridSelectorDisplay(Grid<TGridNode> grid) {
+            _grid = grid;
+        }
+
+        public void UpdatePreviews(IReadOnlyList<Vector2Int> currentDragArea) {
+            RemoveDragPreviews(); // If we optimise UpdateDraggingArea to not completely recalculate everything, but only change some tiles, we should also update this, to only remove/add the needed previews.
+            foreach (Vector2Int tileCoordinate in currentDragArea) {
+                CreateSinglePreview(tileCoordinate);
+            }
+        }
+
+        private void CreateSinglePreview(Vector2Int tileCoordinate) {
+            Vector3 worldPosition = _grid.GetWorldPosition(tileCoordinate);
+            // TODO use object pool
+            GameObject go = Object.Instantiate(TileSelectionIndicatorPrefab, worldPosition, Quaternion.identity);
+            go.transform.parent = TileSelectionIndicatorParent;
+            _currentDragPreviewIndicators.Add(go);
+        }
+
+        public void RemoveDragPreviews() {
+            foreach (GameObject previewObject in _currentDragPreviewIndicators) {
+                // TODO use object pool
+                Object.Destroy(previewObject.gameObject);
+            }
+            _currentDragPreviewIndicators.Clear();
+        }
+        
+        private void RemoveSelectionIndicators() {
+            foreach (GameObject selectionIndicator in _currentSelectionIndicators) {
+                // TODO use object pool
+                Object.Destroy(selectionIndicator.gameObject);
+            }
+            _currentSelectionIndicators.Clear();
+        }
+        
+        private static GameObject CreateTileSelectionIndicatorPrefab() {
+            Color previewSpriteColorOverlay = new(0, 0, 1, 0.2f);
+            var go = new GameObject {
+                name = "DefaultTileSelectionIndicatorPrefab",
+                layer = 0
+            };
+            var previewSpriteRendererPrefab = go.AddComponent<SpriteRenderer>();
+            previewSpriteRendererPrefab.color = previewSpriteColorOverlay;
+            // previewSpriteRendererPrefab.sortingLayerName = "Overlay";
+            return go;
+        }
+    }
+    
+    public class GridSelector<TGridNode> where TGridNode : IGridNode<TGridNode> {
+        private readonly Grid<TGridNode> _grid;
+        private readonly IGridSelectorDisplay<TGridNode> _gridSelectorDisplay;
+        
         public bool ShouldSingleBuildModeStayWhileDragging { get; set; }
 
         public SelectionShape DefaultSelectionShape { get; set; }
@@ -26,28 +87,24 @@ namespace GridSystem.Selection {
         private bool _isDragging;
         private Vector2Int _currentDragStartPosition;
         private Vector2Int _currentDragCurrentPosition;
-        private GameObject _currentTileSelectionIndicatorPrefab;
         private SelectionShape _currentSelectionShape;
         private readonly List<Vector2Int> _currentDragArea = new();
-        private readonly List<GameObject> _currentDragPreviewIndicators = new();
 
         private bool _isSelection;
         private readonly List<Vector2Int> _currentSelection = new();
-        private readonly List<GameObject> _currentSelectionIndicators = new();
 
-        public GridSelector(Grid<TGridNode> grid, GameObject tileSelectionIndicatorPrefab = null,
+        public GridSelector(Grid<TGridNode> grid, IGridSelectorDisplay<TGridNode> gridSelectorDisplay = null,
             SelectionShape defaultSelectionShape = SelectionShape.Area) {
             _grid = grid;
+            _gridSelectorDisplay = gridSelectorDisplay;
             DefaultSelectionShape = defaultSelectionShape;
-            DefaultTileSelectionIndicatorPrefab = tileSelectionIndicatorPrefab;
         }
 
-        public void StartSelectionDrag(Vector3 startPositionWorld, SelectionShape? selectionShape = null, GameObject tileSelectionIndicator = null) {
-            StartSelectionDrag(_grid.GetGridPositionFromWorldPosition(startPositionWorld), selectionShape, tileSelectionIndicator);
+        public void StartSelectionDrag(Vector3 startPositionWorld, SelectionShape? selectionShape = null) {
+            StartSelectionDrag(_grid.GetGridPositionFromWorldPosition(startPositionWorld), selectionShape);
         }
 
-        public void StartSelectionDrag(Vector2Int startPositionGrid, SelectionShape? selectionShape = null,
-            GameObject tileSelectionIndicator = null) {
+        public void StartSelectionDrag(Vector2Int startPositionGrid, SelectionShape? selectionShape = null) {
             if (!AllowSelection) {
                 Debug.Log($"Start selecting not allowed ({nameof(AllowSelection)} was set to false)");
                 return;
@@ -57,11 +114,6 @@ namespace GridSystem.Selection {
                 Debug.LogWarning($"{nameof(GridSelector<TGridNode>)}: Starting a new selection drag, while there already was a drag. Canceling existing drag.");
                 CancelDrag();
             }
-
-            Debug.Assert(_currentTileSelectionIndicatorPrefab == null);
-            _currentTileSelectionIndicatorPrefab = tileSelectionIndicator ??
-                                                   DefaultTileSelectionIndicatorPrefab ??
-                                                   CreateTileSelectionIndicatorPrefab();
             _currentSelectionShape = selectionShape ?? DefaultSelectionShape;
             _currentDragStartPosition = startPositionGrid;
             _isDragging = true;
@@ -85,14 +137,15 @@ namespace GridSystem.Selection {
                 return _currentDragArea.AsReadOnly(); // The update is only within the same grid node.
             }
 
-            UpdateDragArea(newPositionGrid, previousPositionGrid);
-            UpdatePreviews();
-            return _currentDragArea.AsReadOnly();
+            IReadOnlyList<Vector2Int> updatedDragArea = UpdateDragArea(newPositionGrid, previousPositionGrid);
+            _gridSelectorDisplay.UpdatePreviews(updatedDragArea);
+            return updatedDragArea;
         }
         
         public IReadOnlyList<Vector2Int> EndSelectionDrag() {
             _currentSelection.AddRange(_currentDragArea);
             _currentDragArea.Clear();
+            
             
             _currentSelectionIndicators.AddRange(_currentDragPreviewIndicators);
             _currentDragPreviewIndicators.Clear();
@@ -133,7 +186,7 @@ namespace GridSystem.Selection {
             return true;
         }
 
-        private void UpdateDragArea(Vector2Int newPositionGrid, Vector2Int previousPositionGrid) {
+        private IReadOnlyList<Vector2Int> UpdateDragArea(Vector2Int newPositionGrid, Vector2Int previousPositionGrid) {
             // TODO what to do with grid positions outside the grid?
             if (_currentSelectionShape == SelectionShape.Single ||
                 newPositionGrid == _currentDragStartPosition || !IsDragging) {
@@ -142,7 +195,7 @@ namespace GridSystem.Selection {
                 _currentDragArea.Add((IsDragging && ShouldSingleBuildModeStayWhileDragging)
                     ? _currentDragStartPosition
                     : newPositionGrid);
-                return;
+                return _currentDragArea.AsReadOnly();
             }
             
             // Multiple Tiles needed
@@ -176,57 +229,14 @@ namespace GridSystem.Selection {
             }
         }
 
-        private void UpdatePreviews() {
-            RemoveDragPreviews(); // If we optimise UpdateDraggingArea to not completely recalculate everything, but only change some tiles, we should also update this, to only remove/add the needed previews.
-            foreach (Vector2Int tileCoordinate in _currentDragArea) {
-                CreateSinglePreview(tileCoordinate);
-            }
-        }
-
-        private void CreateSinglePreview(Vector2Int tileCoordinate) {
-            Vector3 worldPosition = _grid.GetWorldPosition(tileCoordinate);
-            // TODO use object pool
-            GameObject go = Object.Instantiate(_currentTileSelectionIndicatorPrefab, worldPosition, Quaternion.identity);
-            go.transform.parent = TileSelectionIndicatorParent;
-            _currentDragPreviewIndicators.Add(go);
-        }
-
-        private void RemoveDragPreviews() {
-            foreach (GameObject previewObject in _currentDragPreviewIndicators) {
-                // TODO use object pool
-                Object.Destroy(previewObject.gameObject);
-            }
-            _currentDragPreviewIndicators.Clear();
-        }
-        
-        private void RemoveSelectionIndicators() {
-            foreach (GameObject selectionIndicator in _currentSelectionIndicators) {
-                // TODO use object pool
-                Object.Destroy(selectionIndicator.gameObject);
-            }
-            _currentSelectionIndicators.Clear();
-        }
-
         private void ResetDragAndPreviews() {
             _isDragging = false;
-            RemoveDragPreviews();
+            _gridSelectorDisplay.RemoveDragPreviews();
             _currentDragStartPosition = Vector2Int.zero;
             _currentDragCurrentPosition = Vector2Int.zero;
             _currentTileSelectionIndicatorPrefab = null;
             _currentSelectionShape = DefaultSelectionShape;
             _currentDragArea.Clear();
-        }
-
-        private static GameObject CreateTileSelectionIndicatorPrefab() {
-            Color previewSpriteColorOverlay = new(0, 0, 1, 0.2f);
-            var go = new GameObject {
-                name = "DefaultTileSelectionIndicatorPrefab",
-                layer = 0
-            };
-            var previewSpriteRendererPrefab = go.AddComponent<SpriteRenderer>();
-            previewSpriteRendererPrefab.color = previewSpriteColorOverlay;
-            // previewSpriteRendererPrefab.sortingLayerName = "Overlay";
-            return go;
         }
 
         public enum SelectionShape {
