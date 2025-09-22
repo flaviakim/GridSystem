@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace GridSystem.Selection {
     public interface IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
+        void StartDragPreviews(Vector2Int startPositionGrid, IGrid<TGridNode> grid);
         void UpdateDragPreviews(IReadOnlyList<Vector2Int> currentDragArea, IGrid<TGridNode> grid);
         void EndSelectionDrag(List<Vector2Int> currentSelection);
         void CancelSelectionDrag();

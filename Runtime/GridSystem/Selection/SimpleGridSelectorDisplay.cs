@@ -43,6 +43,10 @@ namespace GridSystem.Selection {
             RemoveSelectionIndicators();
         }
 
+        public void StartDragPreviews(Vector2Int startPositionGrid, IGrid<TGridNode> grid) {
+            UpdateDragPreviews(new List<Vector2Int>(new []{startPositionGrid}), grid);
+        }
+
         public void CancelSelectionDrag() {
             RemoveDragPreviews();
         }

@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using GridSystem;
-using UnityEngine.TestTools;
 
-namespace Tests.Runtime.GridSystem {
+namespace GridSystem.Tests.GridTests {
     // --- Mock Grid Node for Testing ---
     public class TestGridNode : IGridNode<TestGridNode> {
         public int X { get; }
@@ -57,6 +55,22 @@ namespace Tests.Runtime.GridSystem {
             Assert.AreEqual(3, _grid.Width);
             Assert.AreEqual(3, _grid.Height);
             Assert.AreEqual(1f, _grid.CellSize);
+        }
+        
+        [Test]
+        public void TestGridCreationCreatesAllNodesWithCorrectValues() {
+            Assert.AreEqual(3, _grid.Width);
+            Assert.AreEqual(3, _grid.Height);
+
+            for (int x = 0; x < 3; x++) {
+                for (int y = 0; y < 3; y++) {
+                    TestGridNode node = _grid.GetGridNode(x, y);
+                    Assert.IsNotNull(node);
+                    Assert.AreEqual(x, node.X);
+                    Assert.AreEqual(y, node.Y);
+                    Assert.AreEqual(_grid, node.Grid);
+                }
+            }
         }
 
         // --- Node Retrieval and Setting ---

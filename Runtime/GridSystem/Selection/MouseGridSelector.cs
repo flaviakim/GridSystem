@@ -5,7 +5,11 @@ namespace GridSystem.Selection {
     public class MouseGridSelector<TGridObject> : MonoBehaviour where TGridObject : IGridNode<TGridObject> {
         
         [SerializeField] private GameObject previewGameObject;
-        [SerializeField] private GridSelector<TGridObject>.SelectionShape selectionShape = GridSelector<TGridObject>.SelectionShape.Area;
+        [SerializeField] private SelectionShape selectionShape = SelectionShape.Area;
+
+        private void Start() {
+            _camera = Camera.main;
+        }
 
         private void OnValidate() {
             if (_selector != null) {
@@ -14,6 +18,7 @@ namespace GridSystem.Selection {
         }
 
         private GridSelector<TGridObject> _selector;
+        private Camera _camera;
 
         public void Initialize(Grid<TGridObject> grid) {
             _selector = new GridSelector<TGridObject>(grid, new SimpleGridSelectorDisplay<TGridObject>(previewGameObject, previewGameObject), defaultSelectionShape: selectionShape);
@@ -23,8 +28,9 @@ namespace GridSystem.Selection {
             if (_selector == null) {
                 return; // not initialized
             }
-            var mousePositionScreen = Mouse.current.position.ReadValue();
-            var mousePositionWorld = Camera.main.ScreenToWorldPoint(mousePositionScreen);
+            Vector2 mousePositionScreen = Mouse.current.position.ReadValue();
+            if (_camera == null) return;
+            Vector3 mousePositionWorld = _camera.ScreenToWorldPoint(mousePositionScreen);
             if (Mouse.current.leftButton.wasPressedThisFrame) {
                 _selector.EndCurrentSelection();
                 _selector.StartSelectionDrag(mousePositionWorld);
