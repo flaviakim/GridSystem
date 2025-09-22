@@ -1,78 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GridSystem.Selection {
-    public interface IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
-        void UpdatePreviews(IReadOnlyList<Vector2Int> currentDragArea);
-        void RemoveDragPreviews();
-    }
-
-    public class SimpleGridSelectorDisplay<TGridNode> : IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
-        private readonly List<GameObject> _currentDragPreviewIndicators = new();
-        private readonly List<GameObject> _currentSelectionIndicators = new();
-        private readonly Grid<TGridNode> _grid;
-        
-        private GameObject _tileSelectionIndicatorPrefab;
-
-        public GameObject TileSelectionIndicatorPrefab {
-            get { return _tileSelectionIndicatorPrefab ??= CreateTileSelectionIndicatorPrefab(); }
-            set => _tileSelectionIndicatorPrefab = value;
-        }
-
-        public Transform TileSelectionIndicatorParent { get; set; }
-
-        public SimpleGridSelectorDisplay(Grid<TGridNode> grid) {
-            _grid = grid;
-        }
-
-        public void UpdatePreviews(IReadOnlyList<Vector2Int> currentDragArea) {
-            RemoveDragPreviews(); // If we optimise UpdateDraggingArea to not completely recalculate everything, but only change some tiles, we should also update this, to only remove/add the needed previews.
-            foreach (Vector2Int tileCoordinate in currentDragArea) {
-                CreateSinglePreview(tileCoordinate);
-            }
-        }
-
-        private void CreateSinglePreview(Vector2Int tileCoordinate) {
-            Vector3 worldPosition = _grid.GetWorldPosition(tileCoordinate);
-            // TODO use object pool
-            GameObject go = Object.Instantiate(TileSelectionIndicatorPrefab, worldPosition, Quaternion.identity);
-            go.transform.parent = TileSelectionIndicatorParent;
-            _currentDragPreviewIndicators.Add(go);
-        }
-
-        public void RemoveDragPreviews() {
-            foreach (GameObject previewObject in _currentDragPreviewIndicators) {
-                // TODO use object pool
-                Object.Destroy(previewObject.gameObject);
-            }
-            _currentDragPreviewIndicators.Clear();
-        }
-        
-        private void RemoveSelectionIndicators() {
-            foreach (GameObject selectionIndicator in _currentSelectionIndicators) {
-                // TODO use object pool
-                Object.Destroy(selectionIndicator.gameObject);
-            }
-            _currentSelectionIndicators.Clear();
-        }
-        
-        private static GameObject CreateTileSelectionIndicatorPrefab() {
-            Color previewSpriteColorOverlay = new(0, 0, 1, 0.2f);
-            var go = new GameObject {
-                name = "DefaultTileSelectionIndicatorPrefab",
-                layer = 0
-            };
-            var previewSpriteRendererPrefab = go.AddComponent<SpriteRenderer>();
-            previewSpriteRendererPrefab.color = previewSpriteColorOverlay;
-            // previewSpriteRendererPrefab.sortingLayerName = "Overlay";
-            return go;
-        }
-    }
-    
     public class GridSelector<TGridNode> where TGridNode : IGridNode<TGridNode> {
-        private readonly Grid<TGridNode> _grid;
+        private readonly IGrid<TGridNode> _grid;
         private readonly IGridSelectorDisplay<TGridNode> _gridSelectorDisplay;
         
         public bool ShouldSingleBuildModeStayWhileDragging { get; set; }
@@ -93,7 +25,7 @@ namespace GridSystem.Selection {
         private bool _isSelection;
         private readonly List<Vector2Int> _currentSelection = new();
 
-        public GridSelector(Grid<TGridNode> grid, IGridSelectorDisplay<TGridNode> gridSelectorDisplay = null,
+        public GridSelector(IGrid<TGridNode> grid, IGridSelectorDisplay<TGridNode> gridSelectorDisplay = null,
             SelectionShape defaultSelectionShape = SelectionShape.Area) {
             _grid = grid;
             _gridSelectorDisplay = gridSelectorDisplay;
@@ -138,19 +70,15 @@ namespace GridSystem.Selection {
             }
 
             IReadOnlyList<Vector2Int> updatedDragArea = UpdateDragArea(newPositionGrid, previousPositionGrid);
-            _gridSelectorDisplay.UpdatePreviews(updatedDragArea);
+            _gridSelectorDisplay.UpdateDragPreviews(updatedDragArea, _grid);
             return updatedDragArea;
         }
         
         public IReadOnlyList<Vector2Int> EndSelectionDrag() {
             _currentSelection.AddRange(_currentDragArea);
             _currentDragArea.Clear();
-            
-            
-            _currentSelectionIndicators.AddRange(_currentDragPreviewIndicators);
-            _currentDragPreviewIndicators.Clear();
-            
-            ResetDragAndPreviews();
+
+            _gridSelectorDisplay.EndSelectionDrag(_currentSelection);
             
             _isSelection = true;
 
@@ -158,7 +86,8 @@ namespace GridSystem.Selection {
         }
 
         public void CancelDrag() {
-            ResetDragAndPreviews();
+            _gridSelectorDisplay.CancelSelectionDrag();
+            ResetDrag();
         }
 
 
@@ -181,7 +110,7 @@ namespace GridSystem.Selection {
             }
 
             _currentSelection.Clear();
-            RemoveSelectionIndicators();
+            _gridSelectorDisplay.EndCurrentSelection(endedSelection);
             _isSelection = false;
             return true;
         }
@@ -227,14 +156,14 @@ namespace GridSystem.Selection {
                     _currentDragArea.Add(new Vector2Int(x, y));
                 }
             }
+
+            return _currentDragArea;
         }
 
-        private void ResetDragAndPreviews() {
+        private void ResetDrag() {
             _isDragging = false;
-            _gridSelectorDisplay.RemoveDragPreviews();
             _currentDragStartPosition = Vector2Int.zero;
             _currentDragCurrentPosition = Vector2Int.zero;
-            _currentTileSelectionIndicatorPrefab = null;
             _currentSelectionShape = DefaultSelectionShape;
             _currentDragArea.Clear();
         }

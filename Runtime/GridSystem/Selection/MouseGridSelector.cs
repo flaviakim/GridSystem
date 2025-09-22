@@ -10,14 +10,13 @@ namespace GridSystem.Selection {
         private void OnValidate() {
             if (_selector != null) {
                 _selector.DefaultSelectionShape = selectionShape;
-                _selector.DefaultTileSelectionIndicatorPrefab = previewGameObject;
             }
         }
 
         private GridSelector<TGridObject> _selector;
 
         public void Initialize(Grid<TGridObject> grid) {
-            _selector = new GridSelector<TGridObject>(grid, tileSelectionIndicatorPrefab: previewGameObject, defaultSelectionShape: selectionShape);
+            _selector = new GridSelector<TGridObject>(grid, new SimpleGridSelectorDisplay<TGridObject>(previewGameObject, previewGameObject), defaultSelectionShape: selectionShape);
         }
 
         private void Update() {
