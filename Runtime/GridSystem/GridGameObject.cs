@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GridSystem {
@@ -34,12 +35,32 @@ namespace GridSystem {
         public Vector3 GetWorldPosition(int x, int y) {
             return _gridImplementation.GetWorldPosition(x, y);
         }
-        public Vector3 GetWorldPosition(Vector2 positionInGrid) {
-            return _gridImplementation.GetWorldPosition(positionInGrid);
+        public Vector3 GetWorldPosition(Vector2Int gridPosition) {
+            return _gridImplementation.GetWorldPosition(gridPosition);
         }
+        public Vector3 GetWorldPosition(TGridNode node) {
+            return _gridImplementation.GetWorldPosition(node);
+        }
+        public Vector3 TransformGridPositionToWorld(Vector2 positionInGrid) {
+            return _gridImplementation.TransformGridPositionToWorld(positionInGrid);
+        }
+
+        public Vector2Int GetGridPositionFromWorldPosition(Vector3 worldPosition) {
+            return _gridImplementation.GetGridPositionFromWorldPosition(worldPosition);
+        }
+
+        public bool GetXYFromWorldPosition(Vector3 worldPosition, out int x, out int y) {
+            return _gridImplementation.GetXYFromWorldPosition(worldPosition, out x, out y);
+        }
+
         public TGridNode GetGridNodeFromWorldPos(Vector3 worldPosition) {
             return _gridImplementation.GetGridNodeFromWorldPos(worldPosition);
         }
+
+        public List<TGridNode> GetGridNodesInArea(int x, int y, int width, int height) {
+            return _gridImplementation.GetGridNodesInArea(x, y, width, height);
+        }
+
         public void SetGridNode(int x, int y, TGridNode value) {
             _gridImplementation.SetGridNode(x, y, value);
         }

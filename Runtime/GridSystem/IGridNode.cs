@@ -9,6 +9,6 @@ namespace GridSystem {
         Grid<TGridNode> Grid { get; }
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
         public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
-        internal void TriggerGridNodeRemoved();
+        public void TriggerGridNodeRemoved();
     }
 }
