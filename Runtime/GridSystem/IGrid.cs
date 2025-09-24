@@ -32,6 +32,6 @@ namespace GridSystem {
         void SetGridNode(int x, int y, TGridNode value);
         TGridNode GetGridNode(int x, int y);
         
-        TGridNode this[int x, int y] { get; }
+        TGridNode this[int x, int y] => GetGridNode(x, y);
     }
 }
