@@ -180,6 +180,8 @@ namespace GridSystem {
             return default;
         }
 
+        public TGridNode this[int x, int y] => GetGridNode(x, y);
+
         protected void TriggerGridNodeAdded(int x, int y) {
             Debug.Assert(x >= 0 && x < Width && y >= 0 && y < Height, $"{nameof(TriggerGridNodeAdded)}: ({x}, {y}) is out of bounds.");
             OnGridNodeAdded?.Invoke(this, new GridNodeChangedEventArgs(x, y));

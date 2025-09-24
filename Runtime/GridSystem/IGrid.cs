@@ -31,5 +31,7 @@ namespace GridSystem {
         public List<TGridNode> GetGridNodesInArea(int x, int y, int width, int height);
         void SetGridNode(int x, int y, TGridNode value);
         TGridNode GetGridNode(int x, int y);
+        
+        TGridNode this[int x, int y] { get; }
     }
 }
