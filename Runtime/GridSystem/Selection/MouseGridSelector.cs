@@ -1,43 +1,62 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine;
 
 namespace GridSystem.Selection {
-    public class MouseGridSelector<TGridObject> : MonoBehaviour where TGridObject : IGridNode<TGridObject> {
+    public class MouseGridSelector<TGridNode> : MonoBehaviour where TGridNode : IGridNode<TGridNode> {
+        [field: SerializeField] protected GameObject PreviewGameObject { get; set; }
+        [field: SerializeField] protected SelectionShape SelectionShape { get; set; } = SelectionShape.Area;
         
-        [SerializeField] private GameObject previewGameObject;
-        [SerializeField] private SelectionShape selectionShape = SelectionShape.Area;
+        public event EventHandler<GridSelectionEventArgs<TGridNode>> SelectionChanged {
+            add => Selector.SelectionChanged += value;
+            remove => Selector.SelectionChanged -= value;
+        }
+        
+        protected Grid<TGridNode> Grid { get; private set; }
 
-        private void Start() {
-            _camera = Camera.main;
+
+        protected GridSelector<TGridNode> Selector { get; set; }
+        protected Camera Cam { get; set; }
+        protected Mouse Mouse => Mouse.current;
+        protected Vector3 MousePositionWorld => Cam.ScreenToWorldPoint(Mouse.position.ReadValue());
+        protected Vector2Int MouseGridPosition => Grid.GetGridPositionFromWorldPosition(MousePositionWorld);
+        protected TGridNode MouseGridNode {
+            get {
+                Vector2Int pos = MouseGridPosition;
+                return Grid.GetGridNode(pos.x, pos.y);
+            }
         }
 
         private void OnValidate() {
-            if (_selector != null) {
-                _selector.DefaultSelectionShape = selectionShape;
+            if (Selector != null) {
+                Selector.DefaultSelectionShape = SelectionShape;
             }
         }
 
-        private GridSelector<TGridObject> _selector;
-        private Camera _camera;
 
-        public void Initialize(Grid<TGridObject> grid) {
-            _selector = new GridSelector<TGridObject>(grid, new SimpleGridSelectorDisplay<TGridObject>(previewGameObject, previewGameObject), defaultSelectionShape: selectionShape);
+        public void Initialize(Grid<TGridNode> grid) {
+            Grid = grid;
+            Cam = Camera.main;
+            Selector = new GridSelector<TGridNode>(grid,
+                new SimpleGridSelectorDisplay<TGridNode>(PreviewGameObject, PreviewGameObject),
+                defaultSelectionShape: SelectionShape);
         }
 
-        private void Update() {
-            if (_selector == null) {
+        protected virtual void Update() {
+            if (Selector == null || Grid == null || !Cam || Mouse == null) {
                 return; // not initialized
             }
-            Vector2 mousePositionScreen = Mouse.current.position.ReadValue();
-            if (_camera == null) return;
-            Vector3 mousePositionWorld = _camera.ScreenToWorldPoint(mousePositionScreen);
+
+            Vector3 mousePositionWorld = MousePositionWorld;
             if (Mouse.current.leftButton.wasPressedThisFrame) {
-                _selector.EndCurrentSelection();
-                _selector.StartSelectionDrag(mousePositionWorld);
-            } else if (Mouse.current.leftButton.isPressed) {
-                _selector.UpdateSelectionDrag(mousePositionWorld);
-            } else if (Mouse.current.leftButton.wasReleasedThisFrame) {
-                _selector.EndSelectionDrag();
+                Selector.EndCurrentSelection();
+                Selector.StartSelectionDrag(mousePositionWorld);
+            }
+            else if (Mouse.current.leftButton.isPressed) {
+                Selector.UpdateSelectionDrag(mousePositionWorld);
+            }
+            else if (Mouse.current.leftButton.wasReleasedThisFrame) {
+                Selector.EndSelectionDrag();
             }
         }
     }
