@@ -209,5 +209,20 @@ namespace GridSystem {
             }
             return nodes;
         }
+        
+        public int GetManhattanDistance(TGridNode from, TGridNode to) {
+            return Math.Abs(from.X - to.X) + Math.Abs(from.Y - to.Y);
+        }
+
+        public List<TGridNode> GetGridNodes(IEnumerable<Vector2Int> positions) {
+            var nodes = new List<TGridNode>();
+            foreach (Vector2Int pos in positions) {
+                TGridNode node = GetGridNode(pos.x, pos.y);
+                if (node != null) {
+                    nodes.Add(node);
+                }
+            }
+            return nodes;
+        }
     }
 }

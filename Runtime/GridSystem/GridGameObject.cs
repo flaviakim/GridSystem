@@ -67,5 +67,13 @@ namespace GridSystem {
         public TGridNode GetGridNode(int x, int y) {
             return _gridImplementation.GetGridNode(x, y);
         }
+
+        public int GetManhattanDistance(TGridNode from, TGridNode to) {
+            return _gridImplementation.GetManhattanDistance(from, to);
+        }
+
+        public List<TGridNode> GetGridNodes(IEnumerable<Vector2Int> positions) {
+            return _gridImplementation.GetGridNodes(positions);
+        }
     }
 }

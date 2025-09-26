@@ -28,10 +28,12 @@ namespace GridSystem {
         Vector2Int GetGridPositionFromWorldPosition(Vector3 worldPosition);
         bool GetXYFromWorldPosition(Vector3 worldPosition, out int x, out int y);
         TGridNode GetGridNodeFromWorldPos(Vector3 worldPosition);
-        public List<TGridNode> GetGridNodesInArea(int x, int y, int width, int height);
+        List<TGridNode> GetGridNodesInArea(int x, int y, int width, int height);
         void SetGridNode(int x, int y, TGridNode value);
         TGridNode GetGridNode(int x, int y);
         
         TGridNode this[int x, int y] => GetGridNode(x, y);
+        int GetManhattanDistance(TGridNode from, TGridNode to);
+        List<TGridNode> GetGridNodes(IEnumerable<Vector2Int> positions);
     }
 }
