@@ -3,7 +3,7 @@ using System;
 namespace GridSystem.Pathfinding {
     public class PathfindingSystem<TGridNode, TGridUnit> 
         where TGridNode : IWalkableGridNode<TGridNode, TGridUnit>
-        where TGridUnit : IGridUnit
+        where TGridUnit : IGridUnit<TGridUnit, TGridNode>
     {
         private readonly Grid<TGridNode> _grid;
 
