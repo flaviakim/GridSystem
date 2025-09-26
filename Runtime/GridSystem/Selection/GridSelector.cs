@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace GridSystem.Selection {
     public class GridSelector<TGridNode> where TGridNode : IGridNode<TGridNode> {
+        public event EventHandler<GridSelectionEventArgs<TGridNode>> SelectionChanged;
+        
+        
         private readonly IGrid<TGridNode> _grid;
         private readonly IGridSelectorDisplay<TGridNode> _gridSelectorDisplay;
         
@@ -84,8 +88,10 @@ namespace GridSystem.Selection {
             
             ResetDrag();
             _isSelection = true;
-
-            return _currentSelection.ToArray();
+            Vector2Int[] currentSelectionCopy = _currentSelection.ToArray();
+            Debug.Log($"Current selection: {string.Join(", ", currentSelectionCopy)}");
+            SelectionChanged?.Invoke(this, new GridSelectionEventArgs<TGridNode>(SelectionChangeType.Started, currentSelectionCopy, _grid));
+            return currentSelectionCopy;
         }
 
         public void CancelDrag() {
@@ -119,6 +125,7 @@ namespace GridSystem.Selection {
             _gridSelectorDisplay.EndCurrentSelection(_currentSelection.ToArray());
             _currentSelection.Clear();
             _isSelection = false;
+            SelectionChanged?.Invoke(this, new GridSelectionEventArgs<TGridNode>(SelectionChangeType.Cleared, Array.Empty<Vector2Int>(), _grid));
             return true;
         }
 
@@ -218,5 +225,24 @@ namespace GridSystem.Selection {
         Area,
         Line,
         LShape
+    }
+    
+    public enum SelectionChangeType {
+        Started,
+        // Added,
+        // Removed,
+        Cleared
+    }
+    
+    public class GridSelectionEventArgs<TGridNode> : EventArgs where TGridNode : IGridNode<TGridNode> {
+        public SelectionChangeType ChangeType { get; }
+        public IReadOnlyList<Vector2Int> CurrentSelection { get; }
+        public IGrid<TGridNode> Grid { get; }
+        public IReadOnlyList<TGridNode> CurrentSelectedGridNodes => Grid.GetGridNodes(CurrentSelection);
+        public GridSelectionEventArgs(SelectionChangeType changeType, IReadOnlyList<Vector2Int> currentSelection, IGrid<TGridNode> grid) {
+            ChangeType = changeType;
+            CurrentSelection = currentSelection;
+            Grid = grid;
+        }
     }
 }
