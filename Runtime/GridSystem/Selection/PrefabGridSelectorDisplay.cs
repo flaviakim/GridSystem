@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace GridSystem.Selection {
-    public class SimpleGridSelectorDisplay<TGridNode> : IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
+    public class PrefabGridSelectorDisplay<TGridNode> : IGridSelectorDisplay<TGridNode> where TGridNode : IGridNode<TGridNode> {
         private readonly List<GameObject> _currentDragPreviewIndicators = new();
         private readonly List<GameObject> _currentSelectionIndicators = new();
 
@@ -21,9 +21,9 @@ namespace GridSystem.Selection {
 
         public Transform TileIndicatorParent { get; set; }
 
-        public SimpleGridSelectorDisplay() { }
+        public PrefabGridSelectorDisplay() { }
 
-        public SimpleGridSelectorDisplay(GameObject tileDragIndicatorPrefab, GameObject tileSelectionIndicatorPrefab) {
+        public PrefabGridSelectorDisplay(GameObject tileDragIndicatorPrefab, GameObject tileSelectionIndicatorPrefab) {
             _tileDragIndicatorPrefab = tileDragIndicatorPrefab;
             _tileSelectionIndicatorPrefab = tileSelectionIndicatorPrefab;
         }

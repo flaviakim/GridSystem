@@ -34,6 +34,7 @@ namespace GridSystem.Selection {
         }
 
         public void StartSelectionDrag(Vector3 startPositionWorld, SelectionShape? selectionShape = null) {
+            // TODO provide the real world start position to the grid selector display
             StartSelectionDrag(_grid.GetGridPositionFromWorldPosition(startPositionWorld), selectionShape);
         }
 
@@ -59,6 +60,7 @@ namespace GridSystem.Selection {
 
         public IReadOnlyList<Vector2Int> UpdateSelectionDrag(Vector3 updatedPositionWorld) {
             Vector2Int newPosition = _grid.GetGridPositionFromWorldPosition(updatedPositionWorld);
+            // TODO provide the real world start position to the grid selector display
             return UpdateSelectionDrag(newPosition);
         }
 

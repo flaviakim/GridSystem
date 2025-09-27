@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace GridSystem.Selection {
     public class MouseGridSelector<TGridNode> : MonoBehaviour where TGridNode : IGridNode<TGridNode> {
-        [field: SerializeField] protected GameObject PreviewGameObject { get; set; }
+        [field: SerializeField] protected GameObject SelectionDisplayPrefab { get; set; }
+        [field: SerializeField] protected GameObject DragDisplayPrefab { get; set; }
         [field: SerializeField] protected SelectionShape SelectionShape { get; set; } = SelectionShape.Area;
         
         public event EventHandler<GridSelectionEventArgs<TGridNode>> SelectionChanged {
@@ -38,7 +39,7 @@ namespace GridSystem.Selection {
             Grid = grid;
             Cam = Camera.main;
             Selector = new GridSelector<TGridNode>(grid,
-                new SimpleGridSelectorDisplay<TGridNode>(PreviewGameObject, PreviewGameObject),
+                new PrefabGridSelectorDisplay<TGridNode>(DragDisplayPrefab, SelectionDisplayPrefab),
                 defaultSelectionShape: SelectionShape);
         }
 
