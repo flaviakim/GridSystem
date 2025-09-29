@@ -19,6 +19,8 @@ namespace GridSystem {
             _gridImplementation = null;
         }
 
+        public int Count => _gridImplementation.Count;
+
         public int Width => _gridImplementation.Width;
 
         public int Height => _gridImplementation.Height;
@@ -32,14 +34,8 @@ namespace GridSystem {
             set => _gridImplementation.Pivot = value;
         }
 
-        public Vector3 GetWorldPosition(int x, int y) {
-            return _gridImplementation.GetWorldPosition(x, y);
-        }
-        public Vector3 GetWorldPosition(Vector2Int gridPosition) {
-            return _gridImplementation.GetWorldPosition(gridPosition);
-        }
-        public Vector3 GetWorldPosition(TGridNode node) {
-            return _gridImplementation.GetWorldPosition(node);
+        public Vector3 GetWorldPosition(int x, int y, out bool isInBounds) {
+            return _gridImplementation.GetWorldPosition(x, y, out isInBounds);
         }
         public Vector3 TransformGridPositionToWorld(Vector2 positionInGrid) {
             return _gridImplementation.TransformGridPositionToWorld(positionInGrid);
@@ -74,6 +70,21 @@ namespace GridSystem {
 
         public List<TGridNode> GetGridNodes(IEnumerable<Vector2Int> positions) {
             return _gridImplementation.GetGridNodes(positions);
+        }
+
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeChanged {
+            add => _gridImplementation.OnGridNodeChanged += value;
+            remove => _gridImplementation.OnGridNodeChanged -= value;
+        }
+
+        public event EventHandler<GridNodeAddedEvent> OnGridNodeAdded {
+            add => _gridImplementation.OnGridNodeAdded += value;
+            remove => _gridImplementation.OnGridNodeAdded -= value;
+        }
+
+        public event EventHandler<GridNodeRemovedEvent> OnGridNodeRemoved {
+            add => _gridImplementation.OnGridNodeRemoved += value;
+            remove => _gridImplementation.OnGridNodeRemoved -= value;
         }
     }
 }

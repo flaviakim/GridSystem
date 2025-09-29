@@ -1,7 +1,6 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using GridSystem;
 
 namespace GridSystem.Tests.GridTests {
     // --- Mock Grid Node for Testing ---
@@ -11,11 +10,11 @@ namespace GridSystem.Tests.GridTests {
         public Vector2Int GridPosition { get; }
         public Grid<TestGridNode> Grid { get; }
 
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeChanged;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeRemoved;
 
         public void TriggerGridNodeRemoved() {
-            OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEventArgs(X, Y));
+            OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEvent(X, Y));
             RemovedTriggered = true;
         }
 
@@ -30,7 +29,7 @@ namespace GridSystem.Tests.GridTests {
 
         // Helper for raising node-changed
         public void RaiseChangedEvent() {
-            OnGridNodeChanged?.Invoke(this, new GridNodeChangedEventArgs(X, Y));
+            OnGridNodeChanged?.Invoke(this, new GridNodeChangedEvent(X, Y));
         }
     }
 
@@ -121,8 +120,9 @@ namespace GridSystem.Tests.GridTests {
         // --- World Position Conversion ---
         [Test]
         public void GetWorldPosition_IntCoordinates_ShouldReturnExpectedPosition() {
-            var pos = _grid.GetWorldPosition(2, 2);
+            var pos = _grid.GetWorldPosition(2, 2, out bool isInBounds);
             Assert.AreEqual(new Vector3(2, 2, 0), pos);
+            Assert.IsTrue(isInBounds);
         }
 
         [Test]
@@ -180,11 +180,12 @@ namespace GridSystem.Tests.GridTests {
         [Test]
         public void GridToWorldAndBack_ShouldReturnSameCell() {
             var node = _grid.GetGridNode(1, 1);
-            var worldPos = _grid.GetWorldPosition(node.X, node.Y);
+            var worldPos = _grid.GetWorldPosition(node.X, node.Y, out bool isInBounds);
             var backNode = _grid.GetGridNodeFromWorldPos(worldPos);
 
             Assert.AreEqual(node.X, backNode.X);
             Assert.AreEqual(node.Y, backNode.Y);
+            Assert.IsTrue(isInBounds);
         }
     }
 
@@ -220,26 +221,30 @@ namespace GridSystem.Tests.GridTests {
 
         [Test]
         public void CornerPivot_GetWorldPositionZero_ShouldMatchWorldOrigin() {
-            var pos = _cornerPivotGrid.GetWorldPosition(0, 0);
+            var pos = _cornerPivotGrid.GetWorldPosition(0, 0, out bool isInBounds);
             Assert.AreEqual(new Vector3(0, 0, 0), pos);
+            Assert.IsTrue(isInBounds);
         }
 
         [Test]
         public void CenterPivot_GetWorldPositionZero_ShouldMatchWorldOrigin() {
-            var pos = _centerPivotGrid.GetWorldPosition(0, 0);
+            var pos = _centerPivotGrid.GetWorldPosition(0, 0, out bool isInBounds);
             Assert.AreEqual(new Vector3(0, 0, 0), pos);
+            Assert.IsTrue(isInBounds);
         }
         
         [Test]
         public void CornerOffsetPivot_GetWorldPositionZero_ShouldMatchOffset() {
-            var pos = _cornerGridOriginOffset.GetWorldPosition(0, 0);
+            var pos = _cornerGridOriginOffset.GetWorldPosition(0, 0, out bool isInBounds);
             Assert.AreEqual(new Vector3(-0.5f, -0.5f, -0.5f), pos);
+            Assert.IsTrue(isInBounds);
         }
 
         [Test]
         public void CenterOffsetPivot_GetWorldPosition_ShouldBeOffsetByHalfCell() {
-            var pos = _centerGridOriginOffset.GetWorldPosition(0, 0);
+            var pos = _centerGridOriginOffset.GetWorldPosition(0, 0, out bool isInBounds);
             Assert.AreEqual(new Vector3(-0.5f, -0.5f, -0.5f), pos);
+            Assert.IsTrue(isInBounds);
         }
 
         private static void TestRoundTrip(Grid<TestGridNode> grid) {
@@ -247,11 +252,12 @@ namespace GridSystem.Tests.GridTests {
             Vector3 world;
             TestGridNode back;
             node = grid.GetGridNode(1, 1);
-            world = grid.GetWorldPosition(node.X, node.Y);
+            world = grid.GetWorldPosition(node.X, node.Y, out bool isInBounds);
             back = grid.GetGridNodeFromWorldPos(world);
 
             Assert.AreEqual(node.X, back.X);
             Assert.AreEqual(node.Y, back.Y);
+            Assert.IsTrue(isInBounds);
         }
 
         [Test]

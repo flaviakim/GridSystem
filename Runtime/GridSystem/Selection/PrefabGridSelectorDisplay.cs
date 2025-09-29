@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GridSystem.Selection {
@@ -8,6 +9,8 @@ namespace GridSystem.Selection {
 
         private GameObject _tileDragIndicatorPrefab;
         private GameObject _tileSelectionIndicatorPrefab;
+
+        private readonly HashSet<Vector2Int> _lastDragArea = new();
 
         public GameObject TileDragIndicatorPrefab {
             get { return _tileDragIndicatorPrefab ??= CreateTileDragIndicatorPrefab(); }
@@ -28,44 +31,60 @@ namespace GridSystem.Selection {
             _tileSelectionIndicatorPrefab = tileSelectionIndicatorPrefab;
         }
 
-        public void UpdateDragPreviews(IReadOnlyList<Vector2Int> currentDragArea, IGrid<TGridNode> grid) {
-            RemoveDragPreviews(); // If we optimise UpdateDraggingArea to not completely recalculate everything, but only change some tiles, we should also update this, to only remove/add the needed previews.
-            CreateDragPreviews(currentDragArea, grid);
-        }
-
-        public void EndSelectionDrag(List<Vector2Int> currentSelection) {
-            // TODO use TileSelection indicator instead of reusing the drag previews.
-            _currentSelectionIndicators.AddRange(_currentDragPreviewIndicators);
-            _currentDragPreviewIndicators.Clear(); // Don't RemoveDragPreviews, as we don't want to destroy the game objects, we reuse them as selection indicators.
-        }
-
-        public void EndCurrentSelection(IReadOnlyList<Vector2Int> endedSelection) {
-            RemoveSelectionIndicators();
-        }
-
         public void StartDragPreviews(Vector2Int startPositionGrid, IGrid<TGridNode> grid) {
             UpdateDragPreviews(new List<Vector2Int>(new []{startPositionGrid}), grid);
         }
 
-        public void CancelSelectionDrag() {
-            RemoveDragPreviews();
-        }
-
-        private void CreateDragPreviews(IReadOnlyList<Vector2Int> currentDragArea, IGrid<TGridNode> grid) {
-            foreach (Vector2Int tileCoordinate in currentDragArea) {
-                CreateSinglePreview(tileCoordinate, grid);
+        public void UpdateDragPreviews(IEnumerable<Vector2Int> currentDragArea, IGrid<TGridNode> grid) {
+            HashSet<Vector2Int> currentDragAreaSet = currentDragArea.ToHashSet();
+            if (currentDragAreaSet.SetEquals(_lastDragArea)) {
+                return;
+            }
+            RemoveDragIndicators(); // If we optimise UpdateDraggingArea to not completely recalculate everything, but only change some tiles, we should also update this, to only remove/add the needed previews.
+            CreateDragPreviews(currentDragAreaSet, grid);
+            _lastDragArea.Clear();
+            foreach (Vector2Int position in currentDragAreaSet) {
+                _lastDragArea.Add(position);
             }
         }
 
-        private void CreateSinglePreview(Vector2Int tileCoordinate, IGrid<TGridNode> grid) {
-            Vector3 worldPosition = grid.GetWorldPosition(tileCoordinate);
-            // TODO use object pool
-            GameObject go = Object.Instantiate(TileDragIndicatorPrefab, worldPosition, Quaternion.identity);
-            go.transform.parent = TileIndicatorParent;
-            _currentDragPreviewIndicators.Add(go);
+        public void EndSelectionDrag(IEnumerable<Vector2Int> currentSelection, IGrid<TGridNode> grid) {
+            RemoveDragIndicators();
+            _lastDragArea.Clear();
+            CreateSelectionPreviews(currentSelection, grid);
         }
 
-        private void RemoveDragPreviews() {
+        public void CancelSelectionDrag() {
+            RemoveDragIndicators();
+            _lastDragArea.Clear();
+        }
+
+        public void EndCurrentSelection(IEnumerable<Vector2Int> endedSelection) {
+            RemoveSelectionIndicators();
+        }
+
+        private void CreateDragPreviews(IEnumerable<Vector2Int> currentDragArea, IGrid<TGridNode> grid) {
+            foreach (Vector2Int tileCoordinate in currentDragArea) {
+                _currentDragPreviewIndicators.Add(CreateSinglePreview(tileCoordinate, grid, TileDragIndicatorPrefab));
+            }
+        }
+
+        private void CreateSelectionPreviews(IEnumerable<Vector2Int> currentDragArea, IGrid<TGridNode> grid) {
+            foreach (Vector2Int tileCoordinate in currentDragArea) {
+                _currentSelectionIndicators.Add(CreateSinglePreview(tileCoordinate, grid,
+                    TileSelectionIndicatorPrefab));
+            }
+        }
+
+        private GameObject CreateSinglePreview(Vector2Int tileCoordinate, IGrid<TGridNode> grid, GameObject prefab) {
+            Vector3 worldPosition = grid.GetWorldPosition(tileCoordinate, out _);
+            // TODO use object pool
+            GameObject go = Object.Instantiate(prefab, worldPosition, Quaternion.identity);
+            go.transform.parent = TileIndicatorParent;
+            return go;
+        }
+
+        private void RemoveDragIndicators() {
             foreach (GameObject previewObject in _currentDragPreviewIndicators) {
                 // TODO use object pool
                 Object.Destroy(previewObject.gameObject);

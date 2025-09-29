@@ -8,8 +8,8 @@ namespace GridSystem {
         public Vector2Int GridPosition { get; }
         public Grid<TGridNode> Grid { get; }
 
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeChanged;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeRemoved;
 
         public BaseGridNode(Grid<TGridNode> grid, int x, int y) {
             Grid = grid;
@@ -17,11 +17,11 @@ namespace GridSystem {
         }
 
         void IGridNode<TGridNode>.TriggerGridNodeRemoved() {
-            OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEventArgs(X, Y));
+            OnGridNodeRemoved?.Invoke(this, new GridNodeChangedEvent(X, Y));
         }
 
         protected void TriggerChanged() {
-            OnGridNodeChanged?.Invoke(this, new GridNodeChangedEventArgs(X, Y));
+            OnGridNodeChanged?.Invoke(this, new GridNodeChangedEvent(X, Y));
         }
         
         public override bool Equals(object obj) {

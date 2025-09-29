@@ -7,14 +7,12 @@ namespace GridSystem.Selection {
     public class GridSelector<TGridNode> where TGridNode : IGridNode<TGridNode> {
         public event EventHandler<GridSelectionEventArgs<TGridNode>> SelectionChanged;
         
-        
         private readonly IGrid<TGridNode> _grid;
         private readonly IGridSelectorDisplay<TGridNode> _gridSelectorDisplay;
         
         public SelectionShape DefaultSelectionShape { get; set; }
 
         public bool AllowSelection { get; set; } = true;
-
 
         public bool IsDragging => _isDragging;
 
@@ -58,6 +56,7 @@ namespace GridSystem.Selection {
             _gridSelectorDisplay.StartDragPreviews(startPositionGrid, _grid);
         }
 
+        // TODO don't always return the list.
         public IReadOnlyList<Vector2Int> UpdateSelectionDrag(Vector3 updatedPositionWorld) {
             Vector2Int newPosition = _grid.GetGridPositionFromWorldPosition(updatedPositionWorld);
             // TODO provide the real world start position to the grid selector display
@@ -86,7 +85,7 @@ namespace GridSystem.Selection {
             _currentSelection.AddRange(_currentDragArea);
             _currentDragArea.Clear();
 
-            _gridSelectorDisplay.EndSelectionDrag(_currentSelection);
+            _gridSelectorDisplay.EndSelectionDrag(_currentSelection, _grid);
             
             ResetDrag();
             _isSelection = true;

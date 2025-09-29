@@ -7,8 +7,8 @@ namespace GridSystem {
         int Y { get; }
         Vector2Int GridPosition { get; }
         Grid<TGridNode> Grid { get; }
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeChanged;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeRemoved;
         public void TriggerGridNodeRemoved();
     }
 }

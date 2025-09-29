@@ -461,11 +461,11 @@ namespace GridSystem.Selection.Tests {
             StartDragCalled++;
         }
 
-        public void UpdateDragPreviews(IReadOnlyList<Vector2Int> currentDragArea, IGrid<TestGridNode> grid) {
+        public void UpdateDragPreviews(IEnumerable<Vector2Int> currentDragArea, IGrid<TestGridNode> grid) {
             UpdateCalled++;
         }
 
-        public void EndSelectionDrag(List<Vector2Int> currentSelection) {
+        public void EndSelectionDrag(IEnumerable<Vector2Int> currentSelection, IGrid<TestGridNode> grid) {
             EndDragCalled++;
         }
 
@@ -473,7 +473,7 @@ namespace GridSystem.Selection.Tests {
             CancelCalled++;
         }
 
-        public void EndCurrentSelection(IReadOnlyList<Vector2Int> endedSelection) {
+        public void EndCurrentSelection(IEnumerable<Vector2Int> endedSelection) {
             EndSelectionCalled++;
         }
     }
@@ -483,8 +483,8 @@ namespace GridSystem.Selection.Tests {
         public int Y => GridPosition.y;
         public Vector2Int GridPosition { get; }
         public Grid<TestGridNode> Grid { get; }
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeChanged;
-        public event EventHandler<GridNodeChangedEventArgs> OnGridNodeRemoved;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeChanged;
+        public event EventHandler<GridNodeChangedEvent> OnGridNodeRemoved;
 
         public TestGridNode(int x, int y, Grid<TestGridNode> grid) {
             Grid = grid;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GridSystem {
+namespace GridSystem.Visualization {
     public abstract class GridNodeVisualization<TGridNode> : MonoBehaviour where TGridNode : IGridNode<TGridNode> {
         /// <summary>
         /// Initializes the visualizations for all nodes in the given grid.
@@ -46,7 +46,7 @@ namespace GridSystem {
         /// </summary>
         protected abstract void SetupVisualization();
 
-        void OnGridNodeRemoved(object sender, GridNodeChangedEventArgs e) {
+        void OnGridNodeRemoved(object sender, GridNodeChangedEvent e) {
             if (GridNode != null) {
                 GridNode.OnGridNodeChanged -= OnGridNodeChanged;
                 GridNode.OnGridNodeRemoved -= OnGridNodeRemoved;
@@ -63,7 +63,7 @@ namespace GridSystem {
         /// </summary>
         /// <param name="sender"> The sender of the event, typically the grid node itself.</param>
         /// <param name="e"> The event arguments containing information about the removal, such as the coordinates of the grid node.</param>
-        protected abstract void AfterGridNodeRemoved(object sender, GridNodeChangedEventArgs e);
+        protected abstract void AfterGridNodeRemoved(object sender, GridNodeChangedEvent e);
 
         /// <summary>
         /// Called when the grid node has changed.
@@ -74,6 +74,6 @@ namespace GridSystem {
         /// </summary>
         /// <param name="sender"> The sender of the event, typically the grid node itself.</param>
         /// <param name="e"> The event arguments containing information about the change, such as the coordinates of the grid node.</param>
-        protected abstract void OnGridNodeChanged(object sender, GridNodeChangedEventArgs e);
+        protected abstract void OnGridNodeChanged(object sender, GridNodeChangedEvent e);
     }
 }
